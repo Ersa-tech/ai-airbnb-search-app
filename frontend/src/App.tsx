@@ -30,8 +30,20 @@ function App() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!query.trim()) {
+    // Enhanced input validation
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
       setError('Please enter a search query');
+      return;
+    }
+
+    if (trimmedQuery.length < 2) {
+      setError('Please enter at least 2 characters');
+      return;
+    }
+
+    if (trimmedQuery.length > 500) {
+      setError('Search query is too long. Please keep it under 500 characters.');
       return;
     }
 
@@ -41,22 +53,42 @@ function App() {
 
     try {
       const searchRequest: SearchRequest = {
-        query: query.trim(),
+        query: trimmedQuery,
       };
 
+      console.log('🔍 Starting search with query:', trimmedQuery);
       const response = await searchProperties(searchRequest);
       
-      if (response.success && response.data.properties) {
-        setProperties(response.data.properties);
-        if (response.data.properties.length === 0) {
-          setError('No properties found for your search. Try different keywords or location.');
+      // Enhanced response validation
+      if (response && response.success) {
+        const properties = response.data?.properties || [];
+        setProperties(properties);
+        
+        if (properties.length === 0) {
+          setError('No properties found for your search. Try different keywords, be more specific about the location, or check your spelling.');
+        } else {
+          console.log(`✅ Found ${properties.length} properties`);
         }
       } else {
-        setError(response.message || 'Failed to search properties');
+        const errorMsg = response?.message || 'Search failed. Please try again.';
+        setError(errorMsg);
+        console.error('❌ Search failed:', errorMsg);
       }
-    } catch (error) {
-      console.error('Search error:', error);
-      setError('Failed to search properties. Please check your connection and try again.');
+    } catch (error: any) {
+      console.error('🚨 Search error:', error);
+      
+      // Enhanced error handling with specific messages
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.code === 'NETWORK_ERROR') {
+        errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Search timed out. The service might be busy. Please try again in a moment.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -169,10 +201,12 @@ function App() {
               <p className="text-sm text-gray-500 mb-4">Try these example searches:</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {[
-                  'Beach house in Malibu for a weekend getaway',
-                  'Modern apartment in Tokyo with city views',
-                  'Cozy cabin in the mountains for 4 people',
-                  'Luxury villa in Tuscany with a pool'
+                  '11 bedroom house in Texas for large group',
+                  'Luxury 8 bedroom villa in Napa Valley with pool',
+                  'Beach house in Malibu for weekend getaway',
+                  'Modern apartment in NYC with city views',
+                  'Mansion in the Hamptons for wedding party',
+                  'Ski lodge in Aspen for 20 people'
                 ].map((example, index) => (
                   <button
                     key={index}

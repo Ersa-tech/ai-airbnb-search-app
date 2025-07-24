@@ -1,5 +1,6 @@
 import os
 import logging
+import time
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -52,6 +53,8 @@ def health_check():
 @app.route('/api/v1/search', methods=['POST'])
 def search_properties():
     """Main search endpoint that processes natural language queries"""
+    start_time = time.time() * 1000  # Start timing
+    
     try:
         # Get request data
         data = request.get_json()
@@ -90,6 +93,9 @@ def search_properties():
         # Ensure exactly 5 properties for carousel
         properties = enhanced_results.get('properties', properties_data.get('properties', []))[:5]
         
+        # Calculate actual processing time
+        actual_processing_time = (time.time() * 1000 - start_time) / 1000
+        
         # Format response to match frontend expectations
         response = {
             'success': True,
@@ -97,7 +103,7 @@ def search_properties():
                 'properties': properties,
                 'total': len(properties),
                 'query': user_query,
-                'processingTime': 1.5  # Mock processing time
+                'processingTime': round(actual_processing_time, 2)
             },
             'message': enhanced_results.get('ai_summary', f'Found {len(properties)} properties matching your search.')
         }

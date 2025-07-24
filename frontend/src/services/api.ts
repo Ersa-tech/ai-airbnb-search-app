@@ -103,15 +103,87 @@ export interface HealthResponse {
   };
 }
 
-// API Functions
-export const searchProperties = async (searchRequest: SearchRequest): Promise<SearchResponse> => {
-  try {
-    const response = await api.post<SearchResponse>('/api/v1/search', searchRequest);
-    return response.data;
-  } catch (error) {
-    console.error('Search properties error:', error);
-    throw new Error('Failed to search properties. Please try again.');
+// Enhanced error message utility
+const getErrorMessage = (error: any): string => {
+  if (error?.response?.data?.message) {
+    return error.response.data.message;
   }
+  if (error?.response?.data?.error) {
+    return error.response.data.error;
+  }
+  if (error?.message) {
+    return error.message;
+  }
+  if (error?.response?.status === 404) {
+    return 'Service not found. Please check your connection.';
+  }
+  if (error?.response?.status === 500) {
+    return 'Server error. Please try again later.';
+  }
+  if (error?.response?.status === 503) {
+    return 'Service temporarily unavailable. Please try again.';
+  }
+  if (error?.code === 'NETWORK_ERROR') {
+    return 'Network error. Please check your internet connection.';
+  }
+  if (error?.code === 'ECONNABORTED') {
+    return 'Request timeout. Please try again.';
+  }
+  return 'An unexpected error occurred. Please try again.';
+};
+
+// API Functions with enhanced error handling
+export const searchProperties = async (searchRequest: SearchRequest): Promise<SearchResponse> => {
+  const maxRetries = 3;
+  let lastError: Error = new Error('Unknown error');
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔍 Search attempt ${attempt}/${maxRetries}:`, searchRequest);
+      
+      const response = await api.post<SearchResponse>('/api/v1/search', searchRequest);
+      
+      // Validate response structure
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('Invalid response format from server');
+      }
+      
+      // Ensure properties array exists
+      if (!response.data.data?.properties) {
+        response.data.data = {
+          ...response.data.data,
+          properties: [],
+          total: 0,
+          query: searchRequest.query,
+          processingTime: 0
+        };
+      }
+      
+      console.log(`✅ Search successful on attempt ${attempt}`);
+      return response.data;
+      
+    } catch (error: any) {
+      lastError = error;
+      console.error(`❌ Search attempt ${attempt} failed:`, error);
+      
+      // Don't retry on client errors (4xx)
+      if (error.response?.status >= 400 && error.response?.status < 500) {
+        break;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        console.log(`⏳ Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  // All retries failed
+  const errorMessage = getErrorMessage(lastError);
+  console.error('🚨 All search attempts failed:', errorMessage);
+  throw new Error(errorMessage);
 };
 
 export const getHealthStatus = async (): Promise<HealthResponse> => {
