@@ -1,21 +1,5 @@
 services:
-  # MCP Server - Docker Service
-  - type: web
-    name: ai-airbnb-mcp-server
-    env: docker
-    dockerfilePath: ./mcp-server/Dockerfile
-    dockerContext: ./mcp-server
-    plan: starter
-    region: oregon
-    branch: main
-    healthCheckPath: /health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: IGNORE_ROBOTS_TXT
-        value: true
-
-  # Backend - Flask API
+  # Backend - Flask API with Direct RapidAPI Integration
   - type: web
     name: ai-airbnb-backend
     env: python
@@ -32,8 +16,8 @@ services:
         sync: false
       - key: OPENROUTER_BASE_URL
         value: https://openrouter.ai/api/v1
-      - key: MCP_SERVER_URL
-        value: https://ai-airbnb-mcp-server.onrender.com
+      - key: RAPIDAPI_KEY
+        value: d8dad7a0d0msh79d5e302536f59cp1e388bjsn65fdb4ba9233
       - key: CORS_ORIGINS
         value: "*"
 
@@ -50,11 +34,6 @@ services:
         fromService:
           type: web
           name: ai-airbnb-backend
-          property: host
-      - key: REACT_APP_MCP_URL
-        fromService:
-          type: web
-          name: ai-airbnb-mcp-server
           property: host
       - key: NODE_ENV
         value: production
