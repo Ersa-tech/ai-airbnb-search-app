@@ -88,12 +88,23 @@ def search_properties():
         )
         
         # Ensure exactly 5 properties for carousel
-        if 'properties' in enhanced_results:
-            enhanced_results['properties'] = enhanced_results['properties'][:5]
+        properties = enhanced_results.get('properties', properties_data.get('properties', []))[:5]
         
-        logger.info(f"Returning {len(enhanced_results.get('properties', []))} properties")
+        # Format response to match frontend expectations
+        response = {
+            'success': True,
+            'data': {
+                'properties': properties,
+                'total': len(properties),
+                'query': user_query,
+                'processingTime': 1.5  # Mock processing time
+            },
+            'message': enhanced_results.get('ai_summary', f'Found {len(properties)} properties matching your search.')
+        }
         
-        return jsonify(enhanced_results), 200
+        logger.info(f"Returning {len(properties)} properties")
+        
+        return jsonify(response), 200
         
     except requests.exceptions.Timeout:
         logger.error("Request timeout")

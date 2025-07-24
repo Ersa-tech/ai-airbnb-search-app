@@ -31,7 +31,7 @@ services:
       - key: FLASK_ENV
         value: production
       - key: OPENROUTER_API_KEY
-        value: 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
+        sync: false
       - key: OPENROUTER_BASE_URL
         value: https://openrouter.ai/api/v1
       - key: MCP_SERVER_URL
