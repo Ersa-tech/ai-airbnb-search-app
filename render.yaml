@@ -33,10 +33,7 @@ services:
       - key: OPENROUTER_BASE_URL
         value: https://openrouter.ai/api/v1
       - key: MCP_SERVER_URL
-        fromService:
-          type: web
-          name: ai-airbnb-mcp-server
-          property: host
+        value: https://ai-airbnb-mcp-server.onrender.com
       - key: CORS_ORIGINS
         value: "*"
 
