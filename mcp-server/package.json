@@ -1,22 +1,25 @@
 {
-  "name": "ai-airbnb-mcp-server",
+  "name": "real-airbnb-mcp-server",
   "version": "1.0.0",
-  "description": "MCP server for Airbnb data with HTTP wrapper",
-  "main": "http-wrapper.js",
+  "description": "Real Airbnb MCP Server Integration using OpenBnB",
+  "main": "mcp-server.js",
   "scripts": {
-    "start": "node http-wrapper.js",
-    "build": "echo 'Build completed'",
-    "test": "echo 'No tests specified'"
+    "start": "node mcp-server.js",
+    "dev": "npx -y @openbnb/mcp-server-airbnb --ignore-robots-txt",
+    "test": "npx -y @openbnb/mcp-server-airbnb --ignore-robots-txt"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.1"
+    "@openbnb/mcp-server-airbnb": "^0.1.3"
   },
   "engines": {
     "node": ">=18.0.0"
   },
+  "keywords": [
+    "mcp",
+    "airbnb",
+    "real-estate",
+    "search"
+  ],
   "author": "AI Airbnb Search Team",
   "license": "MIT"
 }
