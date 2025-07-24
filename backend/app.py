@@ -719,7 +719,7 @@ def health_check():
         'version': '2.0.0'
     })
 
-@app.route('/search', methods=['POST'])
+@app.route('/api/v1/search', methods=['POST'])
 def search_properties():
     """Enhanced search endpoint with comprehensive error handling"""
     start_time = time.time()
