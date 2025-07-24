@@ -1,0 +1,72 @@
+services:
+  # MCP Server - Docker Service
+  - type: web
+    name: ai-airbnb-mcp-server
+    env: docker
+    dockerfilePath: ./mcp-server/Dockerfile
+    dockerContext: ./mcp-server
+    plan: starter
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: NODE_ENV
+        value: production
+      - key: IGNORE_ROBOTS_TXT
+        value: true
+
+  # Backend - Flask API
+  - type: web
+    name: ai-airbnb-backend
+    env: python
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn --config gunicorn.conf.py app:app
+    plan: starter
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: OPENROUTER_API_KEY
+        value: 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
+      - key: OPENROUTER_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: MCP_SERVER_URL
+        fromService:
+          type: web
+          name: ai-airbnb-mcp-server
+          property: host
+      - key: CORS_ORIGINS
+        value: "*"
+
+  # Frontend - React Static Site
+  - type: static
+    name: ai-airbnb-frontend
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/build
+    plan: starter
+    region: oregon
+    branch: main
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          type: web
+          name: ai-airbnb-backend
+          property: host
+      - key: REACT_APP_MCP_URL
+        fromService:
+          type: web
+          name: ai-airbnb-mcp-server
+          property: host
+      - key: NODE_ENV
+        value: production
+
+# Database (if needed in future)
+# databases:
+#   - name: ai-airbnb-db
+#     databaseName: airbnb_search
+#     user: airbnb_user
+#     plan: starter
