@@ -407,3 +407,62 @@ Output: ["San Francisco downtown apartment", "San Diego beach house", "San Anton
             f"{partial_query} with pool",
             f"{partial_query} for families"
         ]
+    
+    def select_best_properties(self, query: str, properties_summary: List[Dict], criteria: Dict) -> Optional[Dict]:
+        """Use AI to select the best properties based on query criteria"""
+        
+        if not self.api_key or not properties_summary:
+            return None
+        
+        system_prompt = """You are an AI assistant that selects the best properties based on user criteria.
+
+Given a search query, property summaries, and search criteria, select the 5 best properties that match the user's needs.
+
+Return ONLY a JSON object with:
+- "selected_ids": array of property IDs (strings) for the best matches
+- "selection_reasoning": string explaining why these properties were chosen
+
+Consider:
+- Price preferences (cheapest, most expensive, best value)
+- Location quality and relevance
+- Property size and type
+- Ratings and reviews
+- Special criteria mentioned in the query
+
+Example response:
+{
+  "selected_ids": ["123", "456", "789"],
+  "selection_reasoning": "Selected based on budget requirements and high ratings"
+}"""
+
+        # Prepare the data for AI analysis
+        analysis_data = {
+            "query": query,
+            "criteria": criteria,
+            "properties": properties_summary[:20]  # Limit to 20 for analysis
+        }
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": json.dumps(analysis_data, indent=2)}
+        ]
+        
+        response = self._make_request(messages, max_tokens=500)
+        
+        if response:
+            try:
+                # Clean the response to extract JSON
+                response = response.strip()
+                if response.startswith('```json'):
+                    response = response[7:-3]
+                elif response.startswith('```'):
+                    response = response[3:-3]
+                
+                selection_result = json.loads(response)
+                return selection_result
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse AI selection response: {e}")
+                logger.error(f"Response was: {response}")
+        
+        return None

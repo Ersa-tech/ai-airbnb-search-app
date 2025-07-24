@@ -1,4 +1,4 @@
-import axios from 'axios';
+eimport axios from 'axios';
 
 // Environment configuration
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -36,41 +36,32 @@ api.interceptors.response.use(
   }
 );
 
-// Types
+// Types - Updated to match RapidAPI response structure
 export interface Property {
   id: string;
   title: string;
-  description: string;
   price: number;
   currency: string;
-  location: {
-    address: string;
-    city: string;
-    country: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-  };
-  images: string[];
+  location: string; // Simple string location from RapidAPI
+  imageUrl: string; // Single image URL from RapidAPI
   amenities: string[];
   rating: number;
   reviewCount: number;
-  host: {
-    name: string;
-    avatar?: string;
-    isSuperhost: boolean;
-  };
-  availability: {
-    available: boolean;
-    checkIn?: string;
-    checkOut?: string;
-  };
-  propertyType: string;
+  type: string; // Property type from RapidAPI
   guests: number;
   bedrooms: number;
   bathrooms: number;
   url?: string;
+  source: string; // Source identifier
+}
+
+export interface SearchFilters {
+  amenities?: string[];      // ['wifi', 'tv', 'washer']
+  propertyTypes?: string[];  // ['entire_house']
+  hasWifi?: boolean;
+  hasTV?: boolean;
+  hasWasher?: boolean;
+  entirePlace?: boolean;
 }
 
 export interface SearchRequest {
@@ -81,6 +72,7 @@ export interface SearchRequest {
   guests?: number;
   priceMin?: number;
   priceMax?: number;
+  filters?: SearchFilters;
 }
 
 export interface SearchResponse {
@@ -215,12 +207,11 @@ export const formatRating = (rating: number): string => {
 export const getPropertyImage = (property: Property, index: number = 0): string => {
   const fallbackImage = 'https://via.placeholder.com/400x300/f0f0f0/666666?text=No+Image';
   
-  if (!property.images || property.images.length === 0) {
+  if (!property.imageUrl) {
     return fallbackImage;
   }
   
-  const imageUrl = property.images[index] || property.images[0];
-  return imageUrl || fallbackImage;
+  return property.imageUrl || fallbackImage;
 };
 
 // Utility function to truncate text

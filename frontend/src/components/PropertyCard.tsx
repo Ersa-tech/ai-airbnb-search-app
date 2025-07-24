@@ -59,7 +59,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Loading Skeleton */}
         {!imageLoaded && !imageError && (
           <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-50"></div>
           </div>
         )}
         
@@ -80,13 +80,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Top Row: Superhost & Favorite */}
+        {/* Top Row: Rating & Favorite */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-          {/* Superhost Badge */}
-          {property.host.isSuperhost && (
+          {/* Rating Badge */}
+          {property.rating > 0 && (
             <div className="flex items-center bg-white/95 backdrop-blur-sm text-xs font-bold text-gray-800 px-3 py-1.5 rounded-full shadow-lg border border-white/20">
-              <Award className="w-3 h-3 mr-1 text-yellow-500" />
-              Superhost
+              <Star className="w-3 h-3 mr-1 text-yellow-500 fill-current" />
+              {formatRating(property.rating)}
             </div>
           )}
 
@@ -108,17 +108,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           </button>
         </div>
 
-        {/* Bottom Row: Availability */}
+        {/* Bottom Row: Source Badge */}
         <div className="absolute bottom-4 left-4">
-          <div className={`flex items-center px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm shadow-lg ${
-            property.availability.available
-              ? 'bg-green-500/90 text-white'
-              : 'bg-red-500/90 text-white'
-          }`}>
-            <div className={`w-2 h-2 rounded-full mr-2 ${
-              property.availability.available ? 'bg-green-200' : 'bg-red-200'
-            }`} />
-            {property.availability.available ? 'Available' : 'Unavailable'}
+          <div className="flex items-center px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm shadow-lg bg-blue-500/90 text-white">
+            <div className="w-2 h-2 rounded-full mr-2 bg-blue-200" />
+            Real Airbnb
           </div>
         </div>
 
@@ -141,14 +135,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             <div className="flex items-center text-gray-500 text-sm mb-2">
               <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
               <span className="truncate font-medium">
-                {property.location.city}, {property.location.country}
+                {property.location || 'Location not specified'}
               </span>
             </div>
             <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1">
-              {truncateText(property.title, 50)}
+              {truncateText(property.title || 'Property Title', 50)}
             </h3>
             <p className="text-sm text-gray-600 font-medium">
-              {property.propertyType}
+              {property.type || 'Property Type'}
             </p>
           </div>
           
@@ -171,15 +165,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         <div className="flex items-center justify-between text-gray-600 text-sm bg-gray-50 rounded-xl p-3">
           <div className="flex items-center">
             <Users className="w-4 h-4 mr-1.5 text-blue-500" />
-            <span className="font-medium">{property.guests} guests</span>
+            <span className="font-medium">{property.guests || 0} guests</span>
           </div>
           <div className="flex items-center">
             <Bed className="w-4 h-4 mr-1.5 text-purple-500" />
-            <span className="font-medium">{property.bedrooms} bed{property.bedrooms !== 1 ? 's' : ''}</span>
+            <span className="font-medium">{property.bedrooms || 0} bed{(property.bedrooms || 0) !== 1 ? 's' : ''}</span>
           </div>
           <div className="flex items-center">
             <Bath className="w-4 h-4 mr-1.5 text-teal-500" />
-            <span className="font-medium">{property.bathrooms} bath{property.bathrooms !== 1 ? 's' : ''}</span>
+            <span className="font-medium">{property.bathrooms || 0} bath{(property.bathrooms || 0) !== 1 ? 's' : ''}</span>
           </div>
         </div>
 
@@ -219,10 +213,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             </div>
           </div>
           
-          {/* Enhanced Host Info */}
+          {/* Source Info */}
           <div className="flex items-center text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
             <Shield className="w-3 h-3 mr-1.5" />
-            <span className="font-medium">Host: {property.host.name}</span>
+            <span className="font-medium">Source: {property.source || 'Airbnb'}</span>
           </div>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2, MapPin, Calendar, Users, AlertCircle } from 'lucide-react';
 import PropertyCarousel from './components/PropertyCarousel';
-import { searchProperties, getHealthStatus, Property, SearchRequest } from './services/api';
+import FilterPanel, { FilterState } from './components/FilterPanel';
+import FilterButton from './components/FilterButton';
+import { searchProperties, getHealthStatus, Property, SearchRequest, SearchFilters } from './services/api';
 
 function App() {
   const [query, setQuery] = useState('');
@@ -11,6 +13,14 @@ function App() {
   const [hasSearched, setHasSearched] = useState(false);
   const [favoritedProperties, setFavoritedProperties] = useState<Set<string>>(new Set());
   const [healthStatus, setHealthStatus] = useState<string>('checking');
+  
+  // Filter state
+  const [filters, setFilters] = useState<FilterState>({
+    amenities: new Set<string>(),
+    propertyTypes: new Set<string>(),
+    isExpanded: false
+  });
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
 
   // Check health status on mount
   useEffect(() => {
@@ -54,9 +64,11 @@ function App() {
     try {
       const searchRequest: SearchRequest = {
         query: trimmedQuery,
+        filters: convertFiltersToSearchFilters(filters)
       };
 
       console.log('🔍 Starting search with query:', trimmedQuery);
+      console.log('🎛️ Active filters:', searchRequest.filters);
       const response = await searchProperties(searchRequest);
       
       // Enhanced response validation
@@ -108,6 +120,35 @@ function App() {
 
   const handleExampleSearch = (exampleQuery: string) => {
     setQuery(exampleQuery);
+  };
+
+  // Filter handlers
+  const handleFiltersChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+  };
+
+  const handleFilterButtonClick = () => {
+    setShowFilterPanel(true);
+  };
+
+  const handleCloseFilterPanel = () => {
+    setShowFilterPanel(false);
+  };
+
+  const getActiveFilterCount = () => {
+    return filters.amenities.size + filters.propertyTypes.size;
+  };
+
+  // Convert FilterState to SearchFilters for API
+  const convertFiltersToSearchFilters = (filterState: FilterState): SearchFilters => {
+    return {
+      amenities: Array.from(filterState.amenities),
+      propertyTypes: Array.from(filterState.propertyTypes),
+      hasWifi: filterState.amenities.has('wifi'),
+      hasTV: filterState.amenities.has('tv'),
+      hasWasher: filterState.amenities.has('washer'),
+      entirePlace: filterState.propertyTypes.has('entire_house')
+    };
   };
 
   return (
@@ -201,12 +242,16 @@ function App() {
               <p className="text-sm text-gray-500 mb-4">Try these example searches:</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {[
-                  '11 bedroom house in Texas for large group',
+                  'Cheapest large homes on Airbnb',
+                  'Budget-friendly 8+ bedroom houses',
                   'Luxury 8 bedroom villa in Napa Valley with pool',
                   'Beach house in Malibu for weekend getaway',
                   'Modern apartment in NYC with city views',
                   'Mansion in the Hamptons for wedding party',
-                  'Ski lodge in Aspen for 20 people'
+                  'Ski lodge in Aspen for 20 people',
+                  'Affordable large group accommodation',
+                  'Most expensive luxury estates',
+                  'Entire house with WiFi and washer'
                 ].map((example, index) => (
                   <button
                     key={index}
@@ -298,6 +343,20 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Filter Button - Floating */}
+      <FilterButton
+        onClick={handleFilterButtonClick}
+        activeFilterCount={getActiveFilterCount()}
+      />
+
+      {/* Filter Panel */}
+      <FilterPanel
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onClose={handleCloseFilterPanel}
+        isVisible={showFilterPanel}
+      />
 
       {/* Footer */}
       <footer className="bg-gray-50 border-t border-gray-200 mt-16">

@@ -295,7 +295,7 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({
             {currentIndex + 1} of {totalProperties}
           </div>
           <div className="text-sm text-gray-500 mt-1">
-            {displayProperties[currentIndex]?.location.city}, {displayProperties[currentIndex]?.location.country}
+            {displayProperties[currentIndex]?.location}
           </div>
         </div>
       </div>
